@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流行免费字体效果预览 (扩展版)</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lato:wght@400;700&family=Lobster&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:wght@400;700&family=Montserrat:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=Open+Sans:wght@400;700&family=Pacifico&family=Playfair+Display:wght@400;700&family=Roboto+Mono:wght@400;700&family=Roboto:wght@400;500;700&family=Source+Code+Pro:wght@400;700&family=Source+Sans+3:wght@400;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        /* 自定义基础样式 */
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc; /* 使用更柔和的背景色 */
+        }
+        /* 为每个字体预览区域应用对应的字体 */
+        .font-roboto { font-family: 'Roboto', sans-serif; }
+        .font-open-sans { font-family: 'Open Sans', sans-serif; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        .font-noto-sans-sc { font-family: 'Noto Sans SC', sans-serif; }
+        .font-merriweather { font-family: 'Merriweather', serif; }
+        .font-playfair-display { font-family: 'Playfair Display', serif; }
+        .font-lora { font-family: 'Lora', serif; }
+        .font-noto-serif-sc { font-family: 'Noto Serif SC', serif; }
+        .font-zcool-xiaowei { font-family: 'ZCOOL XiaoWei', serif; }
+        .font-source-code-pro { font-family: 'Source Code Pro', monospace; }
+        .font-roboto-mono { font-family: 'Roboto Mono', monospace; }
+        .font-lobster { font-family: 'Lobster', cursive; }
+        .font-pacifico { font-family: 'Pacifico', cursive; }
+
+        .font-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid #e2e8f0;
+        }
+        .font-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-3">免费字体效果预览</h1>
+            <p class="text-lg text-slate-600">探索和选择适用于您项目的流行免费字体（扩展版）</p>
+        </header>
+
+        <main>
+            <!-- 字体分类 -->
+            <div class="space-y-16">
+                <!-- 无衬线字体 -->
+                <div>
+                    <h2 class="text-3xl font-bold border-b-2 border-slate-300 pb-3 mb-8">无衬线 (Sans-serif) - 简洁现代</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Font Card: Roboto -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-roboto mb-4">Roboto</h3>
+                            <p class="font-roboto text-lg leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">Google的官方字体，具有几何形态和友好的开放曲线，在任何设备上都清晰易读，是UI和正文的绝佳选择。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Roboto">复制名称</button>
+                        </div>
+                        <!-- Font Card: Noto Sans SC -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-noto-sans-sc mb-4">Noto Sans SC (思源黑体)</h3>
+                            <p class="font-noto-sans-sc text-lg leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">Google与Adobe合作开发，简体中文版优雅、现代，是目前最受欢迎的免费中文字体之一。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Noto Sans SC">复制名称</button>
+                        </div>
+                        <!-- Font Card: Open Sans -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-open-sans mb-4">Open Sans</h3>
+                            <p class="font-open-sans text-lg leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">具有出色易读性的中性、友好字体，无论在网页、移动设备还是印刷品上都表现极佳。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Open Sans">复制名称</button>
+                        </div>
+                        <!-- Font Card: Montserrat -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-montserrat mb-4">Montserrat</h3>
+                            <p class="font-montserrat text-lg leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">一款时尚的几何风格无衬线字体，灵感来自布宜诺斯艾利斯的旧海报，非常适合标题和品牌设计。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Montserrat">复制名称</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 衬线字体 -->
+                <div>
+                    <h2 class="text-3xl font-bold border-b-2 border-slate-300 pb-3 mb-8">衬线 (Serif) - 经典优雅</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Font Card: Merriweather -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-merriweather mb-4">Merriweather</h3>
+                            <p class="font-merriweather text-lg leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">专为屏幕阅读而设计，即使在小尺寸下也保持高度可读性，非常适合长篇文章和博客正文。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Merriweather">复制名称</button>
+                        </div>
+                        <!-- Font Card: Noto Serif SC -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-noto-serif-sc mb-4">Noto Serif SC (思源宋体)</h3>
+                            <p class="font-noto-serif-sc text-lg leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">思源黑体的搭档，一款典雅的宋体，适合需要传达文学、传统感的场合，兼具美观与可读性。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Noto Serif SC">复制名称</button>
+                        </div>
+                        <!-- Font Card: Playfair Display -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-playfair-display mb-4">Playfair Display</h3>
+                            <p class="font-playfair-display text-xl leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">具有高对比度和精致细节的展示性字体，优雅而富有戏剧性，非常适合用作标题和引言。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Playfair Display">复制名称</button>
+                        </div>
+                        <!-- Font Card: Lora -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-lora mb-4">Lora</h3>
+                            <p class="font-lora text-lg leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">一款均衡的现代衬线字体，具有书法的根源。它的柔和曲线使其在正文和标题中都很美观。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Lora">复制名称</button>
+                        </div>
+                         <!-- Font Card: ZCOOL XiaoWei -->
+                        <div class="font-card bg-white rounded-xl p-6 md:col-span-2">
+                            <h3 class="text-2xl font-bold font-zcool-xiaowei mb-4">ZCOOL XiaoWei (站酷小薇体)</h3>
+                            <p class="font-zcool-xiaowei text-xl leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>The quick brown fox jumps over the lazy dog. 1234567890</p>
+                            <p class="text-sm text-slate-600 mb-5">一款具有复古感和手工艺感的中文衬线字体，字形舒展，细节丰富，适合需要表达文化感和艺术感的标题设计。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="ZCOOL XiaoWei">复制名称</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 等宽字体 -->
+                <div>
+                    <h2 class="text-3xl font-bold border-b-2 border-slate-300 pb-3 mb-8">等宽 (Monospace) - 技术复古</h2>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Font Card: Source Code Pro -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-source-code-pro mb-4">Source Code Pro</h3>
+                            <p class="font-source-code-pro text-lg leading-relaxed mb-4">if (user) { console.log("Hello"); }<br>敏捷的棕色狐狸跳过了懒惰的狗。</p>
+                            <p class="text-sm text-slate-600 mb-5">专为编码设计，字符清晰，间距分明，长时间查看代码也不易疲劳，技术感十足。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Source Code Pro">复制名称</button>
+                        </div>
+                         <!-- Font Card: Roboto Mono -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-2xl font-bold font-roboto-mono mb-4">Roboto Mono</h3>
+                            <p class="font-roboto-mono text-lg leading-relaxed mb-4">const val = "Roboto"; Array.map(fn);<br>敏捷的棕色狐狸跳过了懒惰的狗。</p>
+                            <p class="text-sm text-slate-600 mb-5">Roboto家族的等宽版本，保留了Roboto的清晰和友好特性，同时提供了等宽字体的严谨性。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Roboto Mono">复制名称</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 展示/手写字体 -->
+                <div>
+                    <h2 class="text-3xl font-bold border-b-2 border-slate-300 pb-3 mb-8">展示/手写 (Display/Handwriting) - 个性趣味</h2>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Font Card: Lobster -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-3xl font-bold font-lobster mb-4">Lobster</h3>
+                            <p class="font-lobster text-2xl leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>A beautiful script font.</p>
+                            <p class="text-sm text-slate-600 mb-5">一款非常流行的粗体手写字体，充满活力和个性，非常适合用作LOGO、海报标题和社交媒体图片。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Lobster">复制名称</button>
+                        </div>
+                         <!-- Font Card: Pacifico -->
+                        <div class="font-card bg-white rounded-xl p-6">
+                            <h3 class="text-3xl font-bold font-pacifico mb-4">Pacifico</h3>
+                            <p class="font-pacifico text-2xl leading-relaxed mb-4">敏捷的棕色狐狸跳过了懒惰的狗。<br>Smooth, rounded handwriting.</p>
+                            <p class="text-sm text-slate-600 mb-5">一款流畅圆润的手写字体，灵感来自50年代的美国冲浪文化，给人轻松愉快的感觉。</p>
+                            <button class="copy-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors" data-font-name="Pacifico">复制名称</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="text-center mt-16 py-8 border-t border-slate-200">
+            <p class="text-slate-500">字体由 Google Fonts 提供支持</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- 复制功能脚本 ---
+        const copyButtons = document.querySelectorAll('.copy-btn');
+
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const fontName = button.dataset.fontName;
+                
+                // 使用 Clipboard API，如果可用，作为首选
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(fontName).then(() => {
+                        showFeedback(button);
+                    }).catch(err => {
+                        console.error('使用 Clipboard API 复制失败: ', err);
+                        fallbackCopy(fontName, button); // 如果失败，则使用备用方法
+                    });
+                } else {
+                    fallbackCopy(fontName, button); // 如果 Clipboard API 不可用
+                }
+            });
+        });
+
+        function fallbackCopy(text, button) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'absolute';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showFeedback(button);
+            } catch (err) {
+                console.error('备用复制方法失败: ', err);
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function showFeedback(button) {
+            const originalText = button.innerHTML;
+            button.innerHTML = '已复制!';
+            button.classList.add('bg-green-200', 'text-green-800');
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('bg-green-200', 'text-green-800');
+                button.disabled = false;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

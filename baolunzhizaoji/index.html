@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>暴论制造机 9000</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <style>
+        /* 自定义字体 */
+        body {
+            font-family: 'ZCOOL KuaiLe', sans-serif;
+        }
+
+        /* 赛博朋克风格辉光动画 */
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+                text-shadow:
+                    0 0 5px #fff,
+                    0 0 10px #fff,
+                    0 0 20px #ff00de,
+                    0 0 40px #ff00de,
+                    0 0 80px #ff00de,
+                    0 0 90px #ff00de,
+                    0 0 100px #ff00de;
+                box-shadow:
+                    0 0 5px #fff,
+                    0 0 10px #fff,
+                    0 0 20px #ff00de,
+                    0 0 40px #ff00de;
+            }
+            20%, 24%, 55% {
+                text-shadow: none;
+                box-shadow: none;
+            }
+        }
+
+        .cyber-flicker {
+            animation: flicker 1.5s infinite alternate;
+        }
+
+        /* 按钮悬停时的抖动效果 */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .btn-shake:hover {
+            animation: shake 0.5s infinite;
+        }
+        
+        /* 自定义滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            box-shadow: inset 0 0 5px #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #ff00de, #00f6ff);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #00f6ff, #ff00de);
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen flex items-center justify-center p-4" style="background-image: radial-gradient(circle, #3a003a, #000000 70%);">
+
+    <div class="w-full max-w-2xl mx-auto bg-gray-900/50 backdrop-blur-sm border-4 border-cyan-400 rounded-2xl shadow-lg shadow-cyan-400/50 p-6 md:p-8 transform -skew-y-1">
+        <div class="transform skew-y-1">
+            <!-- 标题，使用 marquee 增加没品效果 -->
+            <marquee behavior="alternate" scrollamount="5">
+                <h1 class="text-4xl md:text-5xl font-bold text-center cyber-flicker" style="color: #ffff00;">
+                    💥 暴论制造机 9000 💥
+                </h1>
+            </marquee>
+            <p class="text-center text-yellow-300 mt-2 text-sm">将你平平无奇的想法，锻造成颠覆宇宙的真理！</p>
+
+            <div class="mt-8">
+                <label for="opinion-input" class="block text-lg font-bold mb-2 text-cyan-400">第一步：输入你那“理性客观”的观点</label>
+                <textarea id="opinion-input" rows="4" class="w-full p-3 bg-gray-800 border-2 border-fuchsia-500 rounded-lg text-white focus:outline-none focus:ring-4 focus:ring-fuchsia-500/50 transition-all duration-300" placeholder="例如：我觉得夏天太热了..."></textarea>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button id="generate-btn" class="btn-shake text-black text-2xl font-bold py-4 px-8 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-full shadow-lg hover:scale-110 transform transition-all duration-300 active:scale-95">
+                    一键升华！
+                </button>
+            </div>
+
+            <!-- 加载动画 -->
+            <div id="loader" class="hidden mt-6 text-center">
+                <p class="text-2xl animate-pulse text-green-400">正在引爆宇宙，进行思维重塑...</p>
+                <div class="text-6xl mt-4 animate-spin">🤡</div>
+            </div>
+
+            <!-- 结果展示 -->
+            <div id="result-container" class="hidden mt-8 p-6 bg-black/50 border-4 border-dashed border-green-400 rounded-xl">
+                <h2 class="text-2xl font-bold text-green-400 mb-4">📢 终极暴论已生成！快去分享！</h2>
+                <p id="result-text" class="text-lg md:text-xl whitespace-pre-wrap break-words"></p>
+                <button id="copy-btn" class="mt-4 py-2 px-4 bg-green-500 text-black font-bold rounded-lg hover:bg-green-400 transition-colors">
+                    复制这坨“智慧”
+                </button>
+                <span id="copy-feedback" class="text-green-400 ml-3 hidden">已复制到剪贴板！</span>
+            </div>
+            
+            <div class="text-center mt-8 text-xs text-gray-500">
+                <p>免责声明：本工具生成的任何言论均与开发者无关。</p>
+                <p>若在公共场合使用引发争端，本网站概不负责，甚至会为你点赞。👍</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generate-btn');
+        const opinionInput = document.getElementById('opinion-input');
+        const loader = document.getElementById('loader');
+        const resultContainer = document.getElementById('result-container');
+        const resultText = document.getElementById('result-text');
+        const copyBtn = document.getElementById('copy-btn');
+        const copyFeedback = document.getElementById('copy-feedback');
+
+        // 生成暴论的按钮事件
+        generateBtn.addEventListener('click', async () => {
+            const userInput = opinionInput.value.trim();
+            if (!userInput) {
+                opinionInput.classList.add('border-red-500', 'animate-pulse');
+                opinionInput.placeholder = "你倒是说点什么啊！";
+                setTimeout(() => {
+                    opinionInput.classList.remove('border-red-500', 'animate-pulse');
+                    opinionInput.placeholder = "例如：我觉得夏天太热了...";
+                }, 2000);
+                return;
+            }
+
+            // 显示加载动画，隐藏旧结果
+            loader.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+            
+            try {
+                // 使用 Gemini API
+                const prompt = `请将以下观点改写成一个极端、夸张、充满煽动性的暴论。让它听起来像一个非常自信但又有点精神错乱的、品味很差的互联网评论。使用大量攻击性和俗气的表情符号，例如 💥🔥🤡, 而且必须用中文回复。原始观点是：“${userInput}”`;
+
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // API key is handled by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 请求失败，状态码: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text;
+                    displayResult(generatedText);
+                } else {
+                    displayResult("🤯 算力爆炸了！AI大脑一片空白，无法生成暴论...再试一次吧！");
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                displayResult(`🤡 出错了！可能是网络波动，也可能是你的观点太“正确”了，AI无法理解。错误信息: ${error.message}`);
+            } finally {
+                // 隐藏加载动画
+                loader.classList.add('hidden');
+            }
+        });
+
+        // 显示结果并启动打字机效果
+        function displayResult(text) {
+            resultContainer.classList.remove('hidden');
+            resultText.textContent = '';
+            let i = 0;
+            function typeWriter() {
+                if (i < text.length) {
+                    resultText.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 30); // 打字机速度
+                }
+            }
+            typeWriter();
+        }
+
+        // 复制按钮事件
+        copyBtn.addEventListener('click', () => {
+            const textToCopy = resultText.innerText;
+            
+            // 使用 document.execCommand 作为备用方案，提高兼容性
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                document.execCommand('copy');
+                copyFeedback.classList.remove('hidden');
+                setTimeout(() => {
+                    copyFeedback.classList.add('hidden');
+                }, 2000);
+            } catch (err) {
+                console.error('复制失败:', err);
+                copyFeedback.textContent = '复制失败!';
+                copyFeedback.classList.remove('hidden');
+                 setTimeout(() => {
+                    copyFeedback.classList.add('hidden');
+                }, 2000);
+            }
+
+            document.body.removeChild(tempTextArea);
+        });
+
+    </script>
+</body>
+</html>

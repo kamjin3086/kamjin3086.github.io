@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片处理 - 本地图片编辑</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #111827;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        .dark .loader {
+             border-top-color: #f9fafb;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: #e5e7eb;
+            outline: none; transition: opacity .2s; border-radius: 9999px;
+        }
+        .dark input[type="range"] { background: #4b5563; }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #1f2937;
+            cursor: pointer; border-radius: 50%;
+        }
+        .dark input[type="range"]::-webkit-slider-thumb { background: #f9fafb; }
+
+        #custom-modal { transition: opacity 0.3s ease; }
+        #custom-modal > div { transition: all 0.3s ease; }
+        
+        [data-tooltip] { position: relative; }
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: 110%; left: 50%;
+            transform: translateX(-50%);
+            background-color: #1f2937; color: white;
+            padding: 6px 10px; border-radius: 6px;
+            font-size: 0.875rem; white-space: nowrap; z-index: 10;
+        }
+        
+        #crop-box {
+            position: absolute;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            outline: 1px solid white;
+            cursor: move;
+            display: none;
+        }
+        
+        #dynamic-tooltip {
+            transition: opacity 0.2s; pointer-events: auto;
+        }
+        #dynamic-tooltip.visible { opacity: 1; }
+        #dynamic-tooltip-content pre { max-height: 200px; overflow-y: auto; }
+        
+        /* Swiss Style overrides */
+        .swiss-input {
+            background-color: transparent;
+            border: none;
+            border-bottom: 2px solid #d1d5db;
+            border-radius: 0;
+            padding-left: 0; padding-right: 0;
+        }
+        .dark .swiss-input {
+             border-bottom-color: #4b5563;
+        }
+        .swiss-input:focus {
+             outline: none;
+             box-shadow: none;
+             border-bottom-color: #111827;
+        }
+        .dark .swiss-input:focus {
+             border-bottom-color: #f9fafb;
+        }
+        .swiss-btn {
+             background-color: #1f2937; color: white;
+             border-radius: 6px; font-weight: 600;
+             transition: background-color 0.2s;
+        }
+        .swiss-btn:hover { background-color: #000; }
+        .dark .swiss-btn {
+             background-color: #f9fafb; color: #1f2937;
+        }
+        .dark .swiss-btn:hover { background-color: #e5e7eb; }
+        
+        .swiss-btn-secondary {
+             background-color: #e5e7eb; color: #1f2937;
+             border-radius: 6px; font-weight: 600;
+             transition: background-color 0.2s;
+        }
+         .swiss-btn-secondary:hover { background-color: #d1d5db; }
+        .dark .swiss-btn-secondary {
+             background-color: #374151; color: #f9fafb;
+        }
+        .dark .swiss-btn-secondary:hover { background-color: #4b5563; }
+
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    
+    <!-- JS动态Tooltip容器 -->
+    <div id="dynamic-tooltip" class="absolute hidden opacity-0 z-50 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-gray-700 w-72">
+        <div id="dynamic-tooltip-content" class="relative"></div>
+    </div>
+
+    <!-- 自定义模态框 -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden opacity-0">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6 text-center transform transition-all scale-95">
+            <p id="modal-message" class="text-lg mb-6"></p>
+            <div id="modal-actions" class="flex justify-center gap-4"></div>
+        </div>
+    </div>
+    
+    <div class="container mx-auto p-4 sm:p-8 lg:p-12">
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-black">图片处理</h1>
+            <div class="flex items-center space-x-2">
+                 <button id="replace-image-btn" class="hidden text-sm font-medium bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center" data-tooltip="替换图片">
+                     <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v12"></path></svg>
+                     替换
+                 </button>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 focus:outline-none" data-tooltip="切换亮/暗模式">
+                    <svg id="theme-icon-light" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <!-- 上传区域 -->
+            <div id="upload-section">
+                <label for="imageInput" class="cursor-pointer text-center block border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-12 hover:border-gray-900 dark:hover:border-gray-500 hover:bg-gray-200/50 dark:hover:bg-gray-800/50 transition-colors">
+                    <svg class="mx-auto h-16 w-16 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4V12a4 4 0 014-4h12l4 4h12a4 4 0 014 4z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    <p class="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">上传文件</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">或拖拽到此区域</p>
+                </label>
+                <input type="file" id="imageInput" class="hidden" accept="image/*">
+            </div>
+
+            <!-- 编辑器 -->
+            <div id="editor-section" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                    <!-- 左侧控制面板 -->
+                    <div class="lg:col-span-4 flex flex-col">
+                        <div class="flex-grow flex flex-col">
+                            <div class="flex border-b border-gray-200 dark:border-gray-700">
+                                <button class="tab-btn flex-1 p-4 text-sm font-semibold border-b-2 border-gray-900 dark:border-gray-100 text-gray-900 dark:text-gray-100" data-tab="resize">缩放</button>
+                                <button class="tab-btn flex-1 p-4 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-gray-100" data-tab="crop">裁剪</button>
+                                <button class="tab-btn flex-1 p-4 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-gray-100" data-tab="export">导出</button>
+                            </div>
+                            <div class="py-8 flex-grow">
+                                <div id="resize-panel" class="tab-panel space-y-8">
+                                    <div class="space-y-3">
+                                        <label class="block text-sm font-medium text-gray-500">快速缩放</label>
+                                        <div class="grid grid-cols-4 gap-2">
+                                            <button class="quick-scale-btn text-sm py-2 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800" data-scale="0.5">50%</button>
+                                            <button class="quick-scale-btn text-sm py-2 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800" data-scale="0.75">75%</button>
+                                            <button class="quick-scale-btn text-sm py-2 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800" data-scale="1.5">150%</button>
+                                            <button class="quick-scale-btn text-sm py-2 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800" data-scale="2">200%</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="presetsSelect" class="block text-sm font-medium text-gray-500 mb-2">常用尺寸</label>
+                                        <select id="presetsSelect" class="w-full p-2 border bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100">
+                                            <option value="">选择预设...</option>
+                                            <option value="1920x1080">Full HD (1920x1080)</option>
+                                            <option value="1280x720">HD (1280x720)</option>
+                                            <option value="3840x2160">4K UHD (3840x2160)</option>
+                                            <option value="1080x1080">Instagram Post (1080x1080)</option>
+                                            <option value="1080x1350">Instagram Portrait (1080x1350)</option>
+                                            <option value="1200x628">Facebook Link (1200x628)</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-6 pt-2">
+                                        <div class="flex items-center space-x-4"><label for="widthInput" class="w-14 font-medium">宽度</label><input type="number" id="widthInput" class="w-full p-2 swiss-input"></div>
+                                        <div class="flex items-center space-x-4"><label for="heightInput" class="w-14 font-medium">高度</label><input type="number" id="heightInput" class="w-full p-2 swiss-input"></div>
+                                        <div class="flex items-center pt-2"><input type="checkbox" id="aspectRatioLock" checked class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:ring-gray-900 dark:focus:ring-gray-100"><label for="aspectRatioLock" class="ml-3 block text-sm">锁定宽高比</label></div>
+                                    </div>
+                                </div>
+                                <div id="crop-panel" class="tab-panel space-y-4 hidden"><p class="text-sm text-center text-gray-500 dark:text-gray-400">在右侧图片上拖动鼠标开始裁剪</p><button id="cropBtn" disabled class="w-full py-3 swiss-btn disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed">应用裁剪</button></div>
+                                <div id="export-panel" class="tab-panel space-y-6 hidden">
+                                    <div><label for="formatSelect" class="block text-sm font-medium text-gray-500 mb-2">目标格式</label><select id="formatSelect" class="w-full p-2 border bg-gray-100 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WEBP</option></select></div>
+                                    <div id="quality-control"><label for="qualitySlider" class="block text-sm font-medium text-gray-500 mb-2">图片质量: <span id="qualityValue" class="font-semibold text-gray-900 dark:text-gray-100">92</span>%</label><input type="range" id="qualitySlider" min="1" max="100" value="92"></div>
+                                </div>
+                            </div>
+                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                                <button id="resetBtn" class="w-full py-3 swiss-btn-secondary"><svg class="w-5 h-5 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 4l5 5M20 20l-5-5"></path></svg>重置</button>
+                                <button id="downloadBtn" class="w-full py-4 text-lg swiss-btn"><svg class="w-6 h-6 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>下载图片</button>
+                                <a id="downloadLink" class="hidden"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 右侧预览区 -->
+                    <div id="canvas-container" class="lg:col-span-8 flex flex-col">
+                        <div id="info-bar" class="hidden bg-gray-100 dark:bg-black text-xs text-gray-600 dark:text-gray-400 p-2 rounded-t-lg flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                            <span id="info-filename" class="font-semibold truncate"></span>
+                            <div><span class="font-medium">原始:</span> <span id="info-original-dims"></span> (<span id="info-original-size"></span>)</div>
+                            <div><span class="font-medium text-gray-900 dark:text-gray-100">当前:</span> <span id="info-current-dims" class="font-semibold text-gray-900 dark:text-gray-100"></span></div>
+                        </div>
+                        <div id="image-preview-wrapper" class="relative flex-grow flex items-center justify-center bg-gray-200/50 dark:bg-black/20 rounded-b-lg min-h-[400px] lg:min-h-0 overflow-hidden">
+                            <canvas id="previewCanvas" class="max-w-full max-h-[75vh] object-contain"></canvas>
+                            <div id="crop-overlay" class="absolute inset-0 hidden cursor-crosshair">
+                                <div id="crop-box"></div>
+                            </div>
+                            <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg hidden"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 下载历史 -->
+                <div id="history-section" class="mt-12 hidden">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-4">
+                        <h2 class="text-2xl font-bold">下载历史</h2>
+                        <button id="clear-history-btn" class="text-sm font-medium text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed" data-tooltip="清空所有历史记录">清空历史</button>
+                    </div>
+                    <div id="history-list" class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                        <!-- History items will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // DOM Elements
+        const uploadSection = document.getElementById('upload-section');
+        const imageInput = document.getElementById('imageInput');
+        const editorSection = document.getElementById('editor-section');
+        const imagePreviewWrapper = document.getElementById('image-preview-wrapper');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const ctx = previewCanvas.getContext('2d');
+        const widthInput = document.getElementById('widthInput');
+        const heightInput = document.getElementById('heightInput');
+        const aspectRatioLock = document.getElementById('aspectRatioLock');
+        const presetsSelect = document.getElementById('presetsSelect');
+        const quickScaleBtns = document.querySelectorAll('.quick-scale-btn');
+        const cropBtn = document.getElementById('cropBtn');
+        const formatSelect = document.getElementById('formatSelect');
+        const qualityControl = document.getElementById('quality-control');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const downloadLink = document.getElementById('downloadLink');
+        const resetBtn = document.getElementById('resetBtn');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIconLight = document.getElementById('theme-icon-light');
+        const themeIconDark = document.getElementById('theme-icon-dark');
+        const modal = document.getElementById('custom-modal');
+        const modalContainer = document.querySelector('#custom-modal > div');
+        const modalMessage = document.getElementById('modal-message');
+        const modalActions = document.getElementById('modal-actions');
+        const infoBar = document.getElementById('info-bar');
+        const infoFilename = document.getElementById('info-filename');
+        const infoOriginalDims = document.getElementById('info-original-dims');
+        const infoOriginalSize = document.getElementById('info-original-size');
+        const infoCurrentDims = document.getElementById('info-current-dims');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+        const historySection = document.getElementById('history-section');
+        const historyList = document.getElementById('history-list');
+        const clearHistoryBtn = document.getElementById('clear-history-btn');
+        const cropOverlay = document.getElementById('crop-overlay');
+        const cropBox = document.getElementById('crop-box');
+        const dynamicTooltip = document.getElementById('dynamic-tooltip');
+        const dynamicTooltipContent = document.getElementById('dynamic-tooltip-content');
+        const replaceImageBtn = document.getElementById('replace-image-btn');
+
+
+        // State
+        let originalFile = null;
+        let originalImage = new Image();
+        let currentImage = new Image();
+        let originalAspectRatio = 1;
+        let isDragging = false;
+        let downloadHistory = [];
+
+        // --- Utils ---
+        const debounce = (func, delay) => {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        };
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        // --- Theme ---
+        function applyTheme(theme) {
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            themeIconLight.classList.toggle('hidden', theme === 'dark');
+            themeIconDark.classList.toggle('hidden', theme !== 'dark');
+        }
+        themeToggle.addEventListener('click', () => {
+            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
+        applyTheme(localStorage.getItem('theme') || 'light');
+
+        // --- UI Functions (Modal System) ---
+        function openModal() {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContainer.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContainer.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+        
+        function showAlert(message) {
+            modalMessage.textContent = message;
+            modalActions.innerHTML = '';
+
+            const okBtn = document.createElement('button');
+            okBtn.textContent = '好的';
+            okBtn.className = 'w-full swiss-btn py-2 px-4';
+            okBtn.onclick = closeModal;
+            
+            modalActions.appendChild(okBtn);
+            openModal();
+        }
+
+        function showConfirm(message, onConfirm) {
+            modalMessage.textContent = message;
+            modalActions.innerHTML = ''; 
+            
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = '确认';
+            confirmBtn.className = 'w-1/2 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors';
+            confirmBtn.onclick = () => {
+                closeModal();
+                onConfirm(); 
+            };
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = '取消';
+            cancelBtn.className = 'w-1/2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-2 px-4 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors';
+            cancelBtn.onclick = closeModal;
+
+            modalActions.appendChild(cancelBtn);
+            modalActions.appendChild(confirmBtn);
+
+            openModal();
+        }
+
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setActiveTab(btn.dataset.tab);
+            });
+        });
+
+        function setActiveTab(tabName) {
+             tabBtns.forEach(b => {
+                const isTarget = b.dataset.tab === tabName;
+                b.classList.toggle('border-gray-900', isTarget);
+                b.classList.toggle('dark:border-gray-100', isTarget);
+                b.classList.toggle('text-gray-900', isTarget);
+                b.classList.toggle('dark:text-gray-100', isTarget);
+                b.classList.toggle('border-transparent', !isTarget);
+                b.classList.toggle('text-gray-500', !isTarget);
+             });
+            tabPanels.forEach(panel => panel.classList.toggle('hidden', panel.id !== `${tabName}-panel`));
+            cropOverlay.classList.toggle('hidden', tabName !== 'crop');
+        }
+
+
+        function updateInfoBar() {
+            if (!originalFile) return;
+            infoBar.classList.remove('hidden');
+            infoFilename.textContent = originalFile.name;
+            infoOriginalDims.textContent = `${originalImage.width}x${originalImage.height}`;
+            infoOriginalSize.textContent = formatBytes(originalFile.size);
+            infoCurrentDims.textContent = `${Math.round(currentImage.width)}x${Math.round(currentImage.height)}`;
+        }
+
+        // --- File Handling ---
+        ['dragover', 'dragleave', 'drop'].forEach(eName => {
+            uploadSection.addEventListener(eName, e => {
+                e.preventDefault(); e.stopPropagation();
+                if (eName === 'dragover') uploadSection.classList.add('border-gray-900', 'dark:border-gray-500');
+                if (eName !== 'dragover') uploadSection.classList.remove('border-gray-900', 'dark:border-gray-500');
+                if (eName === 'drop' && e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+            });
+        });
+        imageInput.addEventListener('change', e => e.target.files.length && handleFile(e.target.files[0]));
+        replaceImageBtn.addEventListener('click', () => imageInput.click());
+
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showAlert('请上传有效的图片文件!');
+                return;
+            }
+            originalFile = file;
+            const reader = new FileReader();
+            reader.onload = e => {
+                originalImage.src = e.target.result;
+                originalImage.onload = () => {
+                    originalAspectRatio = originalImage.width / originalImage.height;
+                    resetToOriginal();
+                    uploadSection.classList.add('hidden');
+                    editorSection.classList.remove('hidden');
+                    replaceImageBtn.classList.remove('hidden');
+                    loadHistory();
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Canvas & Image Manipulation ---
+        function drawImageToCanvas(sourceElement, callback) {
+            const dataURL = (sourceElement.tagName === 'CANVAS') ? sourceElement.toDataURL() : sourceElement.src;
+            
+            currentImage.src = dataURL;
+            currentImage.onerror = () => showAlert('加载处理后的图片时出错。');
+            currentImage.onload = () => {
+                previewCanvas.width = currentImage.width;
+                previewCanvas.height = currentImage.height;
+                ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+                ctx.drawImage(currentImage, 0, 0);
+                updateDimensionInputs();
+                updateInfoBar();
+                if (callback) callback();
+            }
+        }
+        
+        function resetToOriginal() { 
+            drawImageToCanvas(originalImage);
+            presetsSelect.value = "";
+        }
+        resetBtn.addEventListener('click', resetToOriginal);
+        
+        function updateDimensionInputs() {
+            widthInput.value = Math.round(currentImage.width);
+            heightInput.value = Math.round(currentImage.height);
+        }
+        
+        const debouncedResize = debounce(() => {
+            applyResize(parseInt(widthInput.value), parseInt(heightInput.value));
+        }, 400);
+
+        widthInput.addEventListener('input', () => {
+            if (aspectRatioLock.checked) {
+                const newWidth = parseInt(widthInput.value, 10);
+                if (!isNaN(newWidth)) {
+                   heightInput.value = Math.round(newWidth / originalAspectRatio);
+                }
+            }
+            debouncedResize();
+        });
+        heightInput.addEventListener('input', () => {
+            if (aspectRatioLock.checked) {
+                 const newHeight = parseInt(heightInput.value, 10);
+                 if (!isNaN(newHeight)) {
+                    widthInput.value = Math.round(newHeight * originalAspectRatio);
+                }
+            }
+            debouncedResize();
+        });
+        
+        function applyResize(w, h) {
+            if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) {
+                return; 
+            }
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = w; tempCanvas.height = h;
+            tempCanvas.getContext('2d').drawImage(originalImage, 0, 0, w, h);
+            drawImageToCanvas(tempCanvas);
+        }
+
+        quickScaleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const scale = parseFloat(btn.dataset.scale);
+                const newWidth = Math.round(previewCanvas.width * scale);
+                const newHeight = Math.round(previewCanvas.height * scale);
+                widthInput.value = newWidth;
+                heightInput.value = newHeight;
+                applyResize(newWidth, newHeight);
+            });
+        });
+
+        presetsSelect.addEventListener('change', (e) => {
+            if (!e.target.value) return;
+            const [w, h] = e.target.value.split('x').map(Number);
+            widthInput.value = w;
+            heightInput.value = h;
+            applyResize(w, h);
+            e.target.value = "";
+        });
+
+        // --- Cropping (REWRITTEN) ---
+        let cropStart = { x: 0, y: 0 };
+        
+        cropOverlay.addEventListener('mousedown', e => {
+            e.preventDefault();
+            isDragging = true;
+            cropBox.style.display = 'block';
+            const rect = imagePreviewWrapper.getBoundingClientRect();
+            cropStart.x = e.clientX - rect.left;
+            cropStart.y = e.clientY - rect.top;
+            cropBox.style.left = cropStart.x + 'px';
+            cropBox.style.top = cropStart.y + 'px';
+            cropBox.style.width = '0px';
+            cropBox.style.height = '0px';
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const rect = imagePreviewWrapper.getBoundingClientRect();
+            let currentX = e.clientX - rect.left;
+            let currentY = e.clientY - rect.top;
+
+            currentX = Math.max(0, Math.min(currentX, rect.width));
+            currentY = Math.max(0, Math.min(currentY, rect.height));
+
+            const newX = Math.min(cropStart.x, currentX);
+            const newY = Math.min(cropStart.y, currentY);
+            const newW = Math.abs(cropStart.x - currentX);
+            const newH = Math.abs(cropStart.y - currentY);
+            
+            cropBox.style.left = newX + 'px';
+            cropBox.style.top = newY + 'px';
+            cropBox.style.width = newW + 'px';
+            cropBox.style.height = newH + 'px';
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            const w = parseFloat(cropBox.style.width);
+            const h = parseFloat(cropBox.style.height);
+            cropBtn.disabled = w < 5 || h < 5;
+        });
+        
+        cropBtn.addEventListener('click', () => {
+            const canvasRect = previewCanvas.getBoundingClientRect();
+            const cropBoxRect = cropBox.getBoundingClientRect();
+
+            if (cropBoxRect.width <= 0 || cropBoxRect.height <= 0) return;
+            
+            const scale = currentImage.width / canvasRect.width;
+            
+            const sx = (cropBoxRect.left - canvasRect.left) * scale;
+            const sy = (cropBoxRect.top - canvasRect.top) * scale;
+            const sWidth = cropBoxRect.width * scale;
+            const sHeight = cropBoxRect.height * scale;
+
+            if (sWidth <= 0 || sHeight <= 0 || isNaN(sx) || isNaN(sy)) {
+                showAlert("裁剪尺寸无效，请重新拖动选区。");
+                console.error("Invalid crop dimensions calculated:", {sx, sy, sWidth, sHeight});
+                return;
+            }
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = sWidth;
+            tempCanvas.height = sHeight;
+            tempCanvas.getContext('2d').drawImage(currentImage, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
+            
+            drawImageToCanvas(tempCanvas);
+
+            // Reset crop UI
+            cropBox.style.width = '0px';
+            cropBox.style.height = '0px';
+            cropBox.style.display = 'none';
+            cropBtn.disabled = true;
+
+            // 新增：将裁剪结果设为新的 originalImage，确保后续缩放始终基于最新高分辨率图像
+            originalImage = new Image();
+            originalImage.src = tempCanvas.toDataURL();
+            originalImage.onload = () => {
+                originalAspectRatio = originalImage.width / originalImage.height;
+            };
+        });
+
+        // --- Export & History ---
+        formatSelect.addEventListener('change', () => {
+            qualityControl.style.display = (formatSelect.value !== 'image/png') ? 'block' : 'none';
+        });
+        qualitySlider.addEventListener('input', e => qualityValue.textContent = e.target.value);
+        
+        downloadBtn.addEventListener('click', () => {
+            loadingSpinner.classList.remove('hidden');
+            downloadBtn.disabled = true;
+            
+            const format = formatSelect.value;
+            const quality = parseInt(qualitySlider.value, 10);
+            const dataUrl = previewCanvas.toDataURL(format, quality / 100);
+            const filename = `${originalFile.name.split('.').slice(0, -1).join('.')}-edited.${format.split('/')[1]}`;
+            
+            downloadLink.href = dataUrl;
+            downloadLink.download = filename;
+            downloadLink.click();
+
+            const settings = {
+                source: {
+                    filename: originalFile.name,
+                    originalDims: `${originalImage.width}x${originalImage.height}`,
+                },
+                output: {
+                    finalDims: `${previewCanvas.width}x${previewCanvas.height}`,
+                    format: format,
+                    quality: (format !== 'image/png') ? quality : 'N/A'
+                }
+            };
+
+            addHistoryItem({
+                id: Date.now(),
+                filename: filename,
+                timestamp: new Date().toLocaleString(),
+                dataUrl: dataUrl,
+                settings: settings
+            });
+
+            loadingSpinner.classList.add('hidden');
+            downloadBtn.disabled = false;
+        });
+
+        function addHistoryItem(item) {
+            downloadHistory.unshift(item); 
+            if (downloadHistory.length > 20) { 
+                downloadHistory.pop();
+            }
+            saveHistory();
+            renderHistory();
+        }
+
+        function saveHistory() {
+            localStorage.setItem('imageToolkitHistory', JSON.stringify(downloadHistory));
+        }
+
+        function loadHistory() {
+            const storedHistory = localStorage.getItem('imageToolkitHistory');
+            if (storedHistory) {
+                downloadHistory = JSON.parse(storedHistory);
+                renderHistory();
+            }
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = '';
+            if (downloadHistory.length > 0) {
+                historySection.classList.remove('hidden');
+                clearHistoryBtn.disabled = false;
+
+                downloadHistory.forEach(item => {
+                    const historyItemEl = document.createElement('div');
+                    historyItemEl.className = 'flex items-center justify-between p-2 rounded-lg bg-gray-100 dark:bg-gray-900/50';
+                    
+                    historyItemEl.innerHTML = `
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <img src="${item.dataUrl}" class="w-10 h-10 object-cover rounded-md flex-shrink-0">
+                            <div class="truncate">
+                                <p class="text-sm font-medium truncate">${item.filename}</p>
+                                <p class="text-xs text-gray-500">${item.timestamp}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <button class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0" data-tooltip="应用此参数" data-settings-id="${item.id}">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path><path d="M14.121 5.879l-2.121 2.121-1.414-1.414"></path></svg>
+                            </button>
+                            <a href="${item.dataUrl}" download="${item.filename}" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0" data-tooltip="重新下载">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            </a>
+                        </div>
+                    `;
+                    
+                    historyItemEl.addEventListener('mouseenter', (e) => showDynamicTooltip(e, item));
+                    historyItemEl.addEventListener('mouseleave', () => {
+                        tooltipHideTimeout = setTimeout(hideDynamicTooltip, 300);
+                    });
+                    
+                    historyList.appendChild(historyItemEl);
+                });
+            } else {
+                historySection.classList.add('hidden');
+                clearHistoryBtn.disabled = true;
+            }
+        }
+        
+        // --- Dynamic Tooltip Logic ---
+        let tooltipHideTimeout;
+
+        function showDynamicTooltip(event, item) {
+            clearTimeout(tooltipHideTimeout); 
+            const jsonString = JSON.stringify(item.settings, null, 2);
+            dynamicTooltipContent.innerHTML = `
+                <pre class="text-xs font-mono">${jsonString}</pre>
+                <button class="js-copy-btn absolute top-1 right-1 p-1 rounded-md hover:bg-gray-700" data-tooltip="拷贝JSON">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </button>
+            `;
+            
+            const copyBtn = dynamicTooltipContent.querySelector('.js-copy-btn');
+            copyBtn.onclick = (e) => {
+                e.stopPropagation(); 
+                const textArea = document.createElement("textarea");
+                textArea.value = jsonString;
+                textArea.style.position = "fixed"; 
+                textArea.style.opacity = 0;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    copyBtn.innerHTML = `<svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                } catch (err) {
+                    showAlert('拷贝失败!');
+                }
+                document.body.removeChild(textArea);
+
+                setTimeout(() => {
+                    copyBtn.innerHTML = `<svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
+                }, 1500);
+            };
+
+            const rect = event.currentTarget.getBoundingClientRect();
+            dynamicTooltip.style.left = `${rect.left}px`;
+            let topPos = rect.top - 8;
+            dynamicTooltip.style.transform = 'translateY(-100%)';
+            
+            document.body.appendChild(dynamicTooltip);
+            if (dynamicTooltip.getBoundingClientRect().top < 0) {
+                 topPos = rect.bottom + 8;
+                 dynamicTooltip.style.transform = 'translateY(0)';
+            }
+            dynamicTooltip.style.top = `${topPos}px`;
+            
+            dynamicTooltip.classList.remove('hidden');
+            setTimeout(() => dynamicTooltip.classList.add('visible'), 10);
+        }
+
+        function hideDynamicTooltip() {
+            dynamicTooltip.classList.remove('visible');
+             setTimeout(() => {
+                dynamicTooltip.classList.add('hidden');
+             }, 200);
+        }
+        
+        dynamicTooltip.addEventListener('mouseenter', () => clearTimeout(tooltipHideTimeout));
+        dynamicTooltip.addEventListener('mouseleave', () => hideDynamicTooltip());
+        
+        historyList.addEventListener('click', (e) => {
+            const applyBtn = e.target.closest('[data-settings-id]');
+            if (!applyBtn) return;
+            
+            const itemId = parseInt(applyBtn.dataset.settingsId, 10);
+            const historyItem = downloadHistory.find(item => item.id === itemId);
+            if (!historyItem) return;
+
+            const { output } = historyItem.settings;
+            const [w, h] = output.finalDims.split('x').map(Number);
+
+            widthInput.value = w;
+            heightInput.value = h;
+            formatSelect.value = output.format;
+            if (output.quality !== 'N/A') {
+                qualitySlider.value = output.quality;
+                qualityValue.textContent = output.quality;
+            }
+            formatSelect.dispatchEvent(new Event('change'));
+
+            applyResize(w, h);
+            setActiveTab('resize');
+            
+            const originalIcon = applyBtn.innerHTML;
+            applyBtn.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            applyBtn.disabled = true;
+
+            setTimeout(() => {
+                applyBtn.innerHTML = originalIcon;
+                applyBtn.disabled = false;
+            }, 1500);
+        });
+
+
+        clearHistoryBtn.addEventListener('click', () => {
+            showConfirm('您确定要清空所有下载历史记录吗？此操作无法撤销。', () => {
+                downloadHistory = [];
+                localStorage.removeItem('imageToolkitHistory');
+                renderHistory();
+            });
+        });
+
+    });
+    </script>
+</body>
+</html>
