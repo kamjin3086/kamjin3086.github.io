@@ -1,0 +1,1 @@
+const o="./ai-models.schema.json",s={lmstudio:{models:["openai/gpt-oss-20b","qwen3-vl-30b-a3b-instruct"]},ollama:{models:["llama3.1","qwen2.5"]},openai:{models:["gpt-4o","gpt-4o-mini"]}},e={$schema:o,providers:s};export{o as $schema,e as default,s as providers};

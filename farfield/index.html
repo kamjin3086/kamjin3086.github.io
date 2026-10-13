@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" href="data:," />
+    <title>Farfield · Day0-2 体感原型</title>
+    <style>:root{--lightningcss-light: ;--lightningcss-dark:initial;color-scheme:dark}*{box-sizing:border-box}html,body{color:#cfd8e3;background:#05070a;height:100%;margin:0;font:14px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif}#app{position:fixed;inset:0}canvas{display:block}#overlay{background:radial-gradient(1200px 600px at 50% -10%,#0d1420 0%,#05070a 60%);padding:24px 28px 60px;position:fixed;inset:0;overflow:auto}#overlay.hidden{display:none}h1{letter-spacing:.04em;margin:0 0 4px;font-size:20px}.sub{color:#6b7a8d;margin-bottom:20px}section{background:#080c11;border:1px solid #1b242f;border-radius:10px;max-width:760px;margin-bottom:14px;padding:16px 18px}section h2{color:#8fa3b8;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;font-size:13px;font-weight:600}.row{flex-wrap:wrap;gap:8px;display:flex}button{color:#cfd8e3;cursor:pointer;background:#111a24;border:1px solid #24313f;border-radius:8px;padding:8px 14px;font-size:13px}button:hover{border-color:#3d5468}button.on{color:#dceaf7;background:#16324a;border-color:#2f6f9f}button.warn{color:#e0b070;border-color:#5a3a1a}table{border-collapse:collapse;font-variant-numeric:tabular-nums;width:100%}td,th{text-align:left;border-bottom:1px solid #131b24;padding:3px 8px 3px 0}.k{color:#6b7a8d;width:42%}.num{color:#dbe6f2}code{color:#8fb8d8;background:#0d141c;border-radius:4px;padding:1px 5px}#log{white-space:pre-wrap;color:#7f8fa2;max-height:160px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;overflow:auto}.hint{color:#5c6b7d;font-size:12px}</style>
+    <script type="module" crossorigin src="/farfield/assets/index-B9Xgq92x.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="overlay">
+      <h1>Farfield <span class="hint">· Day 0–2 可抛弃体感原型</span></h1>
+      <div class="sub">唯一目的：用身体回答三个问题 —— 大角度眼动是否可承受 / 5 分钟节奏是否可承受 / 零视差放松有没有"卸力"感。<br />
+        这不是产品，跑完就该扔。</div>
+
+      <section>
+        <h2>1 · 预设（振幅 / BPM）</h2>
+        <div class="row" id="presets"></div>
+      </section>
+
+      <section>
+        <h2>2 · 场景</h2>
+        <div class="row" id="scenes"></div>
+      </section>
+
+      <section>
+        <h2>3 · 进入头显</h2>
+        <p class="hint">进头显后第一步会花 10 秒帮你把头显调舒服（跟着画面里的提示做，不用记任何数字）。然后是：<code>头别动，只动眼</code>；随时双击菜单键退出，退出会被记录，不是失败。</p>
+        <div id="vrbutton"></div>
+      </section>
+
+      <section>
+        <h2>4 · 上一次会话</h2>
+        <div id="last">（还没有数据）</div>
+      </section>
+
+      <section>
+        <h2>5 · 数据</h2>
+        <div class="row">
+          <button id="export">导出 JSONL</button>
+          <button id="clear" class="warn">清空本地数据</button>
+        </div>
+        <p class="hint" id="count"></p>
+      </section>
+
+      <section>
+        <h2>调试</h2>
+        <p class="hint">URL 参数：<code>?sim=1</code> 桌面模拟 / <code>&amp;fast=8</code> 时间加速 / <code>&amp;noaudio=1</code> / <code>&amp;skipvas=1</code> 自动填 VAS / <code>&amp;hud=0</code> 关掉头显内进度条 / <code>&amp;test=1</code> 打开客观测量（默认关）<br />
+          闭眼段（NSDR 实验轨道）：<code>?mode=nsdr&amp;min=10</code>；分钟数可在页面上选 5/10/15/20，也可用 <code>min</code> 指定（1–25）· 轨道架构见 <code>DESIGN.md §19</code></p>
+        <div id="log"></div>
+      </section>
+    </div>
+  </body>
+</html>
